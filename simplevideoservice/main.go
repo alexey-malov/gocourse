@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/alexey-malov/gocourse/simplevideoservice/handlers"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 import log "github.com/sirupsen/logrus"
@@ -26,10 +29,36 @@ func main() {
 		log.Fatal("Failed to create log")
 	}
 
-	serverUrl := ":8000"
-	log.WithFields(log.Fields{"url": serverUrl}).Info("starting the server")
+	killSignalChan := getKillSignalChan()
+	srv := startServer(":8000")
 
+	waitForKillSignal(killSignalChan)
+	_ = srv.Shutdown(context.Background())
+}
+
+func startServer(serverUrl string) *http.Server {
 	router := handlers.Router()
-	log.Fatal(http.ListenAndServe(":8000", router))
+	srv := &http.Server{Addr: serverUrl, Handler: router}
 
+	go func() {
+		log.Fatal(srv.ListenAndServe())
+	}()
+
+	return srv
+}
+
+func getKillSignalChan() chan os.Signal {
+	osKillSignalChan := make(chan os.Signal, 1)
+	signal.Notify(osKillSignalChan /*, os.Interrupt, syscall.SIGTERM*/)
+	return osKillSignalChan
+}
+
+func waitForKillSignal(killSignalChan <-chan os.Signal) {
+	killSignal := <-killSignalChan
+	switch killSignal {
+	case os.Interrupt:
+		log.Info("got SIGINT...")
+	case syscall.SIGTERM:
+		log.Info("got SIGTERM...")
+	}
 }
