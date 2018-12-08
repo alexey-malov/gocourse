@@ -21,7 +21,7 @@ func setupLogger() (*os.File, error) {
 }
 
 func main() {
-	if file, _ := setupLogger(); file != nil {
+	if file, err := setupLogger(); err == nil {
 		defer func() {
 			_ = file.Close()
 		}()
@@ -33,7 +33,9 @@ func main() {
 	srv := startServer(":8000")
 
 	waitForKillSignal(killSignalChan)
-	_ = srv.Shutdown(context.Background())
+	if err := srv.Shutdown(context.Background()); err != nil {
+
+	}
 }
 
 func startServer(serverUrl string) *http.Server {

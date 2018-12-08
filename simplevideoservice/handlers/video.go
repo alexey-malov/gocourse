@@ -1,18 +1,37 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 )
 
+type videoContent struct {
+	videoJson
+	Url string `json:"url"`
+}
+
 func video(w http.ResponseWriter, _ *http.Request) {
-	_, err := fmt.Fprint(w, `{
-    "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-    "name": "Black Retrospetive Woman",
-    "duration": 15,
-    "thumbnail":"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/screen.jpg",
-    "url":"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/index.mp4" 
-}`)
+	v := videoContent{
+		videoJson{
+			"d290f1ee-6c54-4b01-90e6-d701748f0851",
+			"d290f1ee-6c54-4b01-90e6-d701748f0851",
+			15,
+			"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/screen.jpg",
+		},
+		"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/index.mp4",
+	}
+
+	b, err := json.Marshal(v)
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
+	if _, err := w.Write(b); err != nil {
+		return
+	}
+
 	if err == nil {
 		return
 	}
