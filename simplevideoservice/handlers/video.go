@@ -14,7 +14,7 @@ func video(w http.ResponseWriter, _ *http.Request) {
 	v := videoContent{
 		videoJson{
 			"d290f1ee-6c54-4b01-90e6-d701748f0851",
-			"d290f1ee-6c54-4b01-90e6-d701748f0851",
+			"Black Retrospetive Woman",
 			15,
 			"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/screen.jpg",
 		},
