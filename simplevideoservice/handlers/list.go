@@ -12,15 +12,24 @@ type videoJson struct {
 	Thumbnail string `json:"thumbnail"`
 }
 
-func list(w http.ResponseWriter, _ *http.Request) {
-	video1 := videoJson{
-		"d290f1ee-6c54-4b01-90e6-d701748f0851",
-		"Black Retrospetive Woman",
-		15,
-		"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/screen.jpg",
+func makeVideoJson(v videoItem) videoJson {
+	return videoJson{
+		v.id,
+		v.name,
+		v.duration,
+		v.screenShotUrl(),
 	}
+}
 
-	b, err := json.Marshal([]videoJson{video1})
+func list(w http.ResponseWriter, _ *http.Request) {
+
+	var videos []videoJson
+	enumVideos(func(v videoItem) bool {
+		videos = append(videos, makeVideoJson(v))
+		return true
+	})
+
+	b, err := json.Marshal(videos)
 	if err != nil {
 		return
 	}

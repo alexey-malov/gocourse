@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
+
 	"net/http"
 )
 
@@ -10,18 +12,29 @@ type videoContent struct {
 	Url string `json:"url"`
 }
 
-func video(w http.ResponseWriter, _ *http.Request) {
-	v := videoContent{
+func makeVideoContent(v videoItem) videoContent {
+	return videoContent{
 		videoJson{
-			"d290f1ee-6c54-4b01-90e6-d701748f0851",
-			"Black Retrospetive Woman",
-			15,
-			"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/screen.jpg",
+			v.id,
+			v.name,
+			v.duration,
+			v.screenShotUrl(),
 		},
-		"/content/d290f1ee-6c54-4b01-90e6-d701748f0851/index.mp4",
+		v.videoUrl(),
+	}
+}
+
+func video(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["ID"]
+
+	v := findVideo(id)
+	if v == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
-	b, err := json.Marshal(v)
+	b, err := json.Marshal(makeVideoContent(*v))
 	if err != nil {
 		return
 	}
