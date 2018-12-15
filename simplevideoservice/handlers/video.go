@@ -8,13 +8,13 @@ import (
 )
 
 type videoContent struct {
-	videoJson
+	videoListItem
 	Url string `json:"url"`
 }
 
 func makeVideoContent(v videoItem) videoContent {
 	return videoContent{
-		videoJson{
+		videoListItem{
 			v.id,
 			v.name,
 			v.duration,
@@ -42,10 +42,6 @@ func video(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(b); err != nil {
-		return
-	}
-
-	if err == nil {
 		return
 	}
 }

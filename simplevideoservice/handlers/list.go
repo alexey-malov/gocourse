@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
-type videoJson struct {
+type videoListItem struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
 	Duration  int    `json:"duration"`
 	Thumbnail string `json:"thumbnail"`
 }
 
-func makeVideoJson(v videoItem) videoJson {
-	return videoJson{
+func makeVideoListItem(v videoItem) videoListItem {
+	return videoListItem{
 		v.id,
 		v.name,
 		v.duration,
@@ -23,9 +23,9 @@ func makeVideoJson(v videoItem) videoJson {
 
 func list(w http.ResponseWriter, _ *http.Request) {
 
-	var videos []videoJson
+	var videos []videoListItem
 	enumVideos(func(v videoItem) bool {
-		videos = append(videos, makeVideoJson(v))
+		videos = append(videos, makeVideoListItem(v))
 		return true
 	})
 
