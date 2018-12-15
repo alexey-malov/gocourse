@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"github.com/alexey-malov/gocourse/simplevideoservice/handlers"
+	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,25 +23,30 @@ func setupLogger() (*os.File, error) {
 }
 
 func main() {
-	if file, err := setupLogger(); err == nil {
-		defer func() {
-			_ = file.Close()
-		}()
-	} else {
+	if _, err := setupLogger(); err != nil {
 		log.Fatal("Failed to create log")
 	}
 
+	db, err := sql.Open("mysql", "root:Jcbdsl7625@/simplevideoservice")
+	if err != nil {
+		log.Fatal("Failed to open DB")
+	}
+	defer db.Close()
+
+	if db.Ping() != nil {
+		log.Fatal("Failed to ping db")
+	}
+
 	killSignalChan := getKillSignalChan()
-	srv := startServer(":8000")
+	srv := startServer(":8000", db)
 
 	waitForKillSignal(killSignalChan)
 	if err := srv.Shutdown(context.Background()); err != nil {
-
 	}
 }
 
-func startServer(serverUrl string) *http.Server {
-	router := handlers.Router()
+func startServer(serverUrl string, db *sql.DB) *http.Server {
+	router := handlers.Router(db)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 
 	go func() {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
 
@@ -24,11 +25,16 @@ func makeVideoContent(v videoItem) videoContent {
 	}
 }
 
-func video(w http.ResponseWriter, r *http.Request) {
+func video(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["ID"]
+	vr := makeVideoRepository(db)
 
-	v := findVideo(id)
+	v, err := vr.findVideo(id)
+	if err != nil {
+		return
+	}
+
 	if v == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 )
@@ -21,13 +22,19 @@ func makeVideoListItem(v videoItem) videoListItem {
 	}
 }
 
-func list(w http.ResponseWriter, _ *http.Request) {
+func list(db *sql.DB, w http.ResponseWriter, _ *http.Request) {
 
 	var videos []videoListItem
-	enumVideos(func(v videoItem) bool {
+
+	vr := makeVideoRepository(db)
+
+	err := vr.enumVideos(func(v videoItem) bool {
 		videos = append(videos, makeVideoListItem(v))
 		return true
 	})
+	if err != nil {
+		return
+	}
 
 	b, err := json.Marshal(videos)
 	if err != nil {

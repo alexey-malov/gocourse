@@ -1,18 +1,25 @@
 package handlers
 
 import (
+	"database/sql"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 import log "github.com/sirupsen/logrus"
 
-func Router() http.Handler {
+func makeHandlerFunc(db *sql.DB, handler func(db *sql.DB, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(db, w, r)
+	}
+}
+
+func Router(db *sql.DB) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/list", list).Methods(http.MethodGet)
-	s.HandleFunc("/video/{ID}", video).Methods(http.MethodGet)
-	s.HandleFunc("/video", uploadVideo).Methods(http.MethodPost)
+	s.HandleFunc("/list", makeHandlerFunc(db, list)).Methods(http.MethodGet)
+	s.HandleFunc("/video/{ID}", makeHandlerFunc(db, video)).Methods(http.MethodGet)
+	s.HandleFunc("/video", makeHandlerFunc(db, uploadVideo)).Methods(http.MethodPost)
 	return logMiddleware(r)
 }
 

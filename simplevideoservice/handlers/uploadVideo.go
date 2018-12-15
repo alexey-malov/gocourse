@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -8,9 +9,9 @@ import (
 	"path/filepath"
 )
 
-const dirPath string = "uploads"
+const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot\content`
 
-func uploadVideo(_ http.ResponseWriter, r *http.Request) {
+func uploadVideo(db *sql.DB, _ http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	// Обрабатываем ошибки
 
@@ -22,32 +23,35 @@ func uploadVideo(_ http.ResponseWriter, r *http.Request) {
 	}
 
 	fileName := header.Filename
-	file, err := createFile(fileName)
+	file, fileId, err := createFile("index.mp4")
 	if err != nil {
 		// TODO
 		return
 	}
 
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
+	defer file.Close()
 
 	_, err = io.Copy(file, fileReader)
 	if err != nil {
 		// TODO
 		return
 	}
+
+	vr := makeVideoRepository(db)
+	if vr.addVideo(videoItem{fileId, fileName, 42}) != nil {
+		// TODO
+		return
+	}
 }
 
-func createFile(name string) (*os.File, error) {
-	videoDir := filepath.Join(dirPath, uuid.New().String())
+func createFile(name string) (*os.File, string, error) {
+	fileId := uuid.New().String()
+	videoDir := filepath.Join(dirPath, fileId)
 	if err := os.Mkdir(videoDir, os.ModeDir); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	filePath := filepath.Join(videoDir, name)
-	return os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	return file, fileId, err
 }
