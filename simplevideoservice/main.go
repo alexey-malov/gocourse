@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/alexey-malov/gocourse/simplevideoservice/handlers"
+	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"os"
@@ -22,31 +23,39 @@ func setupLogger() (*os.File, error) {
 	return file, err
 }
 
+func safeCloseDb(db *sql.DB) {
+	if err := db.Close(); err != nil {
+		log.Fatal("Failed to close db. ", err)
+	}
+}
+
 func main() {
 	if _, err := setupLogger(); err != nil {
 		log.Fatal("Failed to create log")
 	}
 
-	db, err := sql.Open("mysql", "root:Jcbdsl7625@/simplevideoservice")
+	db, err := sql.Open("mysql", "login:password@/simplevideoservice")
 	if err != nil {
 		log.Fatal("Failed to open DB")
 	}
-	defer db.Close()
+	defer safeCloseDb(db)
 
 	if db.Ping() != nil {
 		log.Fatal("Failed to ping db")
 	}
 
+	vr := repository.MakeVideoRepository(db)
+
 	killSignalChan := getKillSignalChan()
-	srv := startServer(":8000", db)
+	srv := startServer(":8000", vr)
 
 	waitForKillSignal(killSignalChan)
 	if err := srv.Shutdown(context.Background()); err != nil {
 	}
 }
 
-func startServer(serverUrl string, db *sql.DB) *http.Server {
-	router := handlers.Router(db)
+func startServer(serverUrl string, vr repository.VideoRepository) *http.Server {
+	router := handlers.Router(vr)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 
 	go func() {

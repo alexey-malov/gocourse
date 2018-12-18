@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
+	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/gorilla/mux"
 
 	"net/http"
@@ -13,24 +14,23 @@ type videoContent struct {
 	Url string `json:"url"`
 }
 
-func makeVideoContent(v videoItem) videoContent {
+func makeVideoContent(v model.VideoItem) videoContent {
 	return videoContent{
 		videoListItem{
-			v.id,
-			v.name,
-			v.duration,
-			v.screenShotUrl(),
+			v.Id(),
+			v.Name(),
+			v.Duration(),
+			v.ScreenShotUrl(),
 		},
-		v.videoUrl(),
+		v.VideoUrl(),
 	}
 }
 
-func video(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func video(vr repository.VideoRepository, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["ID"]
-	vr := makeVideoRepository(db)
 
-	v, err := vr.findVideo(id)
+	v, err := vr.FindVideo(id)
 	if err != nil {
 		return
 	}

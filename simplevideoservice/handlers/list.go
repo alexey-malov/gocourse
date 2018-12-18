@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
+	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"net/http"
 )
 
@@ -13,22 +14,19 @@ type videoListItem struct {
 	Thumbnail string `json:"thumbnail"`
 }
 
-func makeVideoListItem(v videoItem) videoListItem {
+func makeVideoListItem(v model.VideoItem) videoListItem {
 	return videoListItem{
-		v.id,
-		v.name,
-		v.duration,
-		v.screenShotUrl(),
+		v.Id(),
+		v.Name(),
+		v.Duration(),
+		v.ScreenShotUrl(),
 	}
 }
 
-func list(db *sql.DB, w http.ResponseWriter, _ *http.Request) {
-
+func list(vr repository.VideoRepository, w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	vr := makeVideoRepository(db)
-
-	err := vr.enumVideos(func(v videoItem) bool {
+	err := vr.EnumVideos(func(v model.VideoItem) bool {
 		videos = append(videos, makeVideoListItem(v))
 		return true
 	})

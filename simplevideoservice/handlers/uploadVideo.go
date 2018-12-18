@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"database/sql"
+	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
@@ -11,7 +13,7 @@ import (
 
 const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot\content`
 
-func uploadVideo(db *sql.DB, _ http.ResponseWriter, r *http.Request) {
+func uploadVideo(vr repository.VideoRepository, _ http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	// Обрабатываем ошибки
 
@@ -29,7 +31,11 @@ func uploadVideo(db *sql.DB, _ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Error("Failed to close uploaded file. Error is ", err)
+		}
+	}()
 
 	_, err = io.Copy(file, fileReader)
 	if err != nil {
@@ -37,8 +43,7 @@ func uploadVideo(db *sql.DB, _ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vr := makeVideoRepository(db)
-	if vr.addVideo(videoItem{fileId, fileName, 42}) != nil {
+	if vr.AddVideo(model.MakeVideoItem(fileId, fileName, 42)) != nil {
 		// TODO
 		return
 	}

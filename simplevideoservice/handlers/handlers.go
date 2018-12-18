@@ -1,25 +1,25 @@
 package handlers
 
 import (
-	"database/sql"
+	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 import log "github.com/sirupsen/logrus"
 
-func makeHandlerFunc(db *sql.DB, handler func(db *sql.DB, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+func makeHandlerFunc(vr repository.VideoRepository, handler func(vr repository.VideoRepository, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		handler(db, w, r)
+		handler(vr, w, r)
 	}
 }
 
-func Router(db *sql.DB) http.Handler {
+func Router(vr repository.VideoRepository) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/list", makeHandlerFunc(db, list)).Methods(http.MethodGet)
-	s.HandleFunc("/video/{ID}", makeHandlerFunc(db, video)).Methods(http.MethodGet)
-	s.HandleFunc("/video", makeHandlerFunc(db, uploadVideo)).Methods(http.MethodPost)
+	s.HandleFunc("/list", makeHandlerFunc(vr, list)).Methods(http.MethodGet)
+	s.HandleFunc("/video/{ID}", makeHandlerFunc(vr, video)).Methods(http.MethodGet)
+	s.HandleFunc("/video", makeHandlerFunc(vr, uploadVideo)).Methods(http.MethodPost)
 	return logMiddleware(r)
 }
 

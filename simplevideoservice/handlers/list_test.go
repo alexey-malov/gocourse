@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/alexey-malov/gocourse/simplevideoservice/model"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -10,7 +11,12 @@ import (
 
 func TestList(t *testing.T) {
 	w := httptest.NewRecorder()
-	list(w, nil)
+	vr := &mockRepo{}
+	vr.videos = []model.VideoItem{
+		model.MakeVideoItem("video-id1", "video1-name", 13),
+		model.MakeVideoItem("video-id2", "video1 name 2", 42),
+	}
+	list(vr, w, nil)
 	response := w.Result()
 	if response.StatusCode != http.StatusOK {
 		t.Errorf("Status code is wrong. Have: %d, want: %d.", response.StatusCode, http.StatusOK)
@@ -29,7 +35,7 @@ func TestList(t *testing.T) {
 		t.Errorf("Can't parse json response with error %v", err)
 	}
 
-	if len(items) != 3 {
+	if len(items) != 2 {
 		t.Error("3 list items expected")
 	}
 }
