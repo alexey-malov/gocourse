@@ -10,13 +10,13 @@ type videoRepository struct {
 	db *sql.DB
 }
 
-type VideoRepository interface {
-	EnumVideos(handler func(v model.VideoItem) bool) error
-	FindVideo(id string) (*model.VideoItem, error)
-	AddVideo(v model.VideoItem) error
+type Videos interface {
+	Enumerate(handler func(v model.VideoItem) bool) error
+	Find(id string) (*model.VideoItem, error)
+	Add(v model.VideoItem) error
 }
 
-func MakeVideoRepository(db *sql.DB) VideoRepository {
+func MakeVideoRepository(db *sql.DB) Videos {
 	return &videoRepository{db}
 }
 
@@ -26,7 +26,7 @@ func safeCloseRows(rr *sql.Rows) {
 	}
 }
 
-func (r *videoRepository) EnumVideos(handler func(v model.VideoItem) bool) error {
+func (r *videoRepository) Enumerate(handler func(v model.VideoItem) bool) error {
 	rows, err := r.db.Query("SELECT video_key, title, duration FROM video")
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (r *videoRepository) EnumVideos(handler func(v model.VideoItem) bool) error
 	return nil
 }
 
-func (r *videoRepository) FindVideo(id string) (*model.VideoItem, error) {
+func (r *videoRepository) Find(id string) (*model.VideoItem, error) {
 	var title string
 	var duration int
 	if err := r.db.QueryRow("SELECT title, duration FROM video WHERE video_key=?", id).Scan(&title, &duration); err != nil {
@@ -56,7 +56,7 @@ func (r *videoRepository) FindVideo(id string) (*model.VideoItem, error) {
 	return &v, nil
 }
 
-func (r *videoRepository) AddVideo(v model.VideoItem) error {
+func (r *videoRepository) Add(v model.VideoItem) error {
 	_, err := r.db.Exec(`INSERT INTO
     video
 SET

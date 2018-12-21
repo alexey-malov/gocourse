@@ -8,13 +8,13 @@ import (
 
 import log "github.com/sirupsen/logrus"
 
-func makeHandlerFunc(vr repository.VideoRepository, handler func(vr repository.VideoRepository, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+func makeHandlerFunc(vr repository.Videos, handler func(vr repository.Videos, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler(vr, w, r)
 	}
 }
 
-func Router(vr repository.VideoRepository) http.Handler {
+func Router(vr repository.Videos) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/list", makeHandlerFunc(vr, list)).Methods(http.MethodGet)

@@ -60,7 +60,7 @@ func main() {
 	}
 }
 
-func startServer(serverUrl string, vr repository.VideoRepository) *http.Server {
+func startServer(serverUrl string, vr repository.Videos) *http.Server {
 	router := handlers.Router(vr)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 

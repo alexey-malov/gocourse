@@ -23,10 +23,10 @@ func makeVideoListItem(v model.VideoItem) videoListItem {
 	}
 }
 
-func list(vr repository.VideoRepository, w http.ResponseWriter, _ *http.Request) {
+func list(vr repository.Videos, w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	err := vr.EnumVideos(func(v model.VideoItem) bool {
+	err := vr.Enumerate(func(v model.VideoItem) bool {
 		videos = append(videos, makeVideoListItem(v))
 		return true
 	})

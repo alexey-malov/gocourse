@@ -10,7 +10,7 @@ import (
 
 const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot\content`
 
-func uploadVideo(vr repository.VideoRepository, _ http.ResponseWriter, r *http.Request) {
+func uploadVideo(vr repository.Videos, _ http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	// Обрабатываем ошибки
 
@@ -30,7 +30,7 @@ func uploadVideo(vr repository.VideoRepository, _ http.ResponseWriter, r *http.R
 		return
 	}
 
-	if err = vr.AddVideo(model.MakeVideoItem(id, fileName, 42)); err != nil {
+	if err = vr.Add(model.MakeVideoItem(id, fileName, 42)); err != nil {
 		log.Error(err)
 		return
 	}

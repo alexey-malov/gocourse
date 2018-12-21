@@ -26,11 +26,11 @@ func makeVideoContent(v model.VideoItem) videoContent {
 	}
 }
 
-func video(vr repository.VideoRepository, w http.ResponseWriter, r *http.Request) {
+func video(vr repository.Videos, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["ID"]
 
-	v, err := vr.FindVideo(id)
+	v, err := vr.Find(id)
 	if err != nil {
 		return
 	}
