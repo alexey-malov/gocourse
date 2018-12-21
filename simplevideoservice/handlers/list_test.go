@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -12,9 +12,9 @@ import (
 func TestList(t *testing.T) {
 	w := httptest.NewRecorder()
 	vr := &mockRepo{}
-	vr.videos = []model.VideoItem{
-		model.MakeVideoItem("video-id1", "video1-name", 13),
-		model.MakeVideoItem("video-id2", "video1 name 2", 42),
+	vr.videos = []domain.Video{
+		domain.MakeVideo("video-id1", "video1-name", 13),
+		domain.MakeVideo("video-id2", "video1 name 2", 42),
 	}
 	list(vr, w, nil)
 	response := w.Result()

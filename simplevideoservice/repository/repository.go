@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -11,9 +11,9 @@ type videoRepository struct {
 }
 
 type Videos interface {
-	Enumerate(handler func(v model.VideoItem) bool) error
-	Find(id string) (*model.VideoItem, error)
-	Add(v model.VideoItem) error
+	Enumerate(handler func(v domain.Video) bool) error
+	Find(id string) (*domain.Video, error)
+	Add(v domain.Video) error
 }
 
 func MakeVideoRepository(db *sql.DB) Videos {
@@ -26,7 +26,7 @@ func safeCloseRows(rr *sql.Rows) {
 	}
 }
 
-func (r *videoRepository) Enumerate(handler func(v model.VideoItem) bool) error {
+func (r *videoRepository) Enumerate(handler func(v domain.Video) bool) error {
 	rows, err := r.db.Query("SELECT video_key, title, duration FROM video")
 	if err != nil {
 		return err
@@ -39,24 +39,24 @@ func (r *videoRepository) Enumerate(handler func(v model.VideoItem) bool) error 
 		if err := rows.Scan(&id, &title, &duration); err != nil {
 			return err
 		}
-		if !handler(model.MakeVideoItem(id, title, duration)) {
+		if !handler(domain.MakeVideo(id, title, duration)) {
 			return nil
 		}
 	}
 	return nil
 }
 
-func (r *videoRepository) Find(id string) (*model.VideoItem, error) {
+func (r *videoRepository) Find(id string) (*domain.Video, error) {
 	var title string
 	var duration int
 	if err := r.db.QueryRow("SELECT title, duration FROM video WHERE video_key=?", id).Scan(&title, &duration); err != nil {
 		return nil, err
 	}
-	v := model.MakeVideoItem(id, title, duration)
+	v := domain.MakeVideo(id, title, duration)
 	return &v, nil
 }
 
-func (r *videoRepository) Add(v model.VideoItem) error {
+func (r *videoRepository) Add(v domain.Video) error {
 	_, err := r.db.Exec(`INSERT INTO
     video
 SET

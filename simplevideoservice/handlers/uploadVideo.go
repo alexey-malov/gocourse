@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/alexey-malov/gocourse/simplevideoservice/storage"
 	log "github.com/sirupsen/logrus"
@@ -30,7 +30,7 @@ func uploadVideo(vr repository.Videos, _ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = vr.Add(model.MakeVideoItem(id, fileName, 42)); err != nil {
+	if err = vr.Add(domain.MakeVideo(id, fileName, 42)); err != nil {
 		log.Error(err)
 		return
 	}

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"net/http"
 )
@@ -14,7 +14,7 @@ type videoListItem struct {
 	Thumbnail string `json:"thumbnail"`
 }
 
-func makeVideoListItem(v model.VideoItem) videoListItem {
+func makeVideoListItem(v domain.Video) videoListItem {
 	return videoListItem{
 		v.Id(),
 		v.Name(),
@@ -26,7 +26,7 @@ func makeVideoListItem(v model.VideoItem) videoListItem {
 func list(vr repository.Videos, w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	err := vr.Enumerate(func(v model.VideoItem) bool {
+	err := vr.Enumerate(func(v domain.Video) bool {
 		videos = append(videos, makeVideoListItem(v))
 		return true
 	})

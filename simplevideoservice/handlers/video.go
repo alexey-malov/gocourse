@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/gorilla/mux"
 
@@ -14,7 +14,7 @@ type videoContent struct {
 	Url string `json:"url"`
 }
 
-func makeVideoContent(v model.VideoItem) videoContent {
+func makeVideoContent(v domain.Video) videoContent {
 	return videoContent{
 		videoListItem{
 			v.Id(),

@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/alexey-malov/gocourse/simplevideoservice/model"
+	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
@@ -12,28 +12,11 @@ import (
 )
 
 type mockRepo struct {
-	videos     []model.VideoItem
-	findResult *model.VideoItem
+	videos     []domain.Video
+	findResult *domain.Video
 }
 
-/*
-var videoItems = []model.VideoItem{
-	{"d290f1ee-6c54-4b01-90e6-d701748f0851", "Black Retrospetive Woman", 15},
-	{"sldjfl34-dfgj-523k-jk34-5jk3j45klj34", "Go Rally TEASER-HD", 41},
-	{"hjkhhjk3-23j4-j45k-erkj-kj3k4jl2k345", "Танцор", 92},
-}
-
-type videoItemCallback func(v videoItem) bool
-
-func enumVideos(cb videoItemCallback) {
-	for _, v := range videoItems {
-		if !cb(v) {
-			return
-		}
-	}
-}*/
-
-func (r *mockRepo) EnumVideos(handler func(v model.VideoItem) bool) error {
+func (r *mockRepo) Enumerate(handler func(v domain.Video) bool) error {
 	for _, v := range r.videos {
 		if !handler(v) {
 			return nil
@@ -42,18 +25,18 @@ func (r *mockRepo) EnumVideos(handler func(v model.VideoItem) bool) error {
 	return nil
 }
 
-func (r *mockRepo) FindVideo(id string) (*model.VideoItem, error) {
+func (r *mockRepo) Find(id string) (*domain.Video, error) {
 	return r.findResult, nil
 }
 
-func (r *mockRepo) AddVideo(v model.VideoItem) error {
+func (r *mockRepo) Add(v domain.Video) error {
 	r.videos = append(r.videos, v)
 	return nil
 }
 
 func TestVideo(t *testing.T) {
 	w := httptest.NewRecorder()
-	v := model.MakeVideoItem("video-id", "video-name", 12345)
+	v := domain.MakeVideo("video-id", "video-name", 12345)
 	r := httptest.NewRequest("GET", fmt.Sprintf("/video/%s", v.Id()), nil)
 	vars := map[string]string{"ID": v.Id()}
 	r = mux.SetURLVars(r, vars)
