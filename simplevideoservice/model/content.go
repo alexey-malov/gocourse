@@ -31,17 +31,3 @@ func (v VideoItem) ScreenShotUrl() string {
 func (v VideoItem) VideoUrl() string {
 	return fmt.Sprintf("/content/%s/index.mp4", v.id)
 }
-
-/*
-func findVideo(id string) *videoItem {
-	var result *videoItem
-	enumVideos(func(v videoItem) bool {
-		if v.id == id {
-			result = &v
-			return false
-		}
-		return true
-	})
-	return result
-}
-*/

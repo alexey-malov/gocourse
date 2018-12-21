@@ -34,14 +34,20 @@ func main() {
 		log.Fatal("Failed to create log")
 	}
 
-	db, err := sql.Open("mysql", "login:password@/simplevideoservice")
+	const dbUrlEnvVar = "SIMPLE_VIDEO_SERVICE_DB"
+	dbUrl := os.Getenv(dbUrlEnvVar)
+	if dbUrl == "" {
+		log.Fatalf("No %s environment variable", dbUrlEnvVar)
+	}
+
+	db, err := sql.Open("mysql", dbUrl)
 	if err != nil {
 		log.Fatal("Failed to open DB")
 	}
 	defer safeCloseDb(db)
 
-	if db.Ping() != nil {
-		log.Fatal("Failed to ping db")
+	if err := db.Ping(); err != nil {
+		log.Fatal("Failed to ping db:", err)
 	}
 
 	vr := repository.MakeVideoRepository(db)

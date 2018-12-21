@@ -3,12 +3,9 @@ package handlers
 import (
 	"github.com/alexey-malov/gocourse/simplevideoservice/model"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
-	"github.com/google/uuid"
+	"github.com/alexey-malov/gocourse/simplevideoservice/storage"
 	log "github.com/sirupsen/logrus"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
 const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot\content`
@@ -25,38 +22,16 @@ func uploadVideo(vr repository.VideoRepository, _ http.ResponseWriter, r *http.R
 	}
 
 	fileName := header.Filename
-	file, fileId, err := createFile("index.mp4")
+
+	files := storage.MakeFiles(dirPath)
+	_, id, err := files.Add(fileReader)
 	if err != nil {
-		// TODO
+		log.Error(err)
 		return
 	}
 
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Error("Failed to close uploaded file. Error is ", err)
-		}
-	}()
-
-	_, err = io.Copy(file, fileReader)
-	if err != nil {
-		// TODO
+	if err = vr.AddVideo(model.MakeVideoItem(id, fileName, 42)); err != nil {
+		log.Error(err)
 		return
 	}
-
-	if vr.AddVideo(model.MakeVideoItem(fileId, fileName, 42)) != nil {
-		// TODO
-		return
-	}
-}
-
-func createFile(name string) (*os.File, string, error) {
-	fileId := uuid.New().String()
-	videoDir := filepath.Join(dirPath, fileId)
-	if err := os.Mkdir(videoDir, os.ModeDir); err != nil {
-		return nil, "", err
-	}
-
-	filePath := filepath.Join(videoDir, name)
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	return file, fileId, err
 }
