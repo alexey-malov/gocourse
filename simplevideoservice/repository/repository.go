@@ -27,19 +27,19 @@ func safeCloseRows(rr *sql.Rows) {
 }
 
 func (r *videoRepository) Enumerate(handler func(v domain.Video) bool) error {
-	rows, err := r.db.Query("SELECT video_key, title, duration FROM video")
+	rows, err := r.db.Query("SELECT video_key, title, url, thumbnail_url, duration FROM video")
 	if err != nil {
 		return err
 	}
 	defer safeCloseRows(rows)
 
 	for rows.Next() {
-		var id, title string
+		var id, title, video, screenshot string
 		var duration int
-		if err := rows.Scan(&id, &title, &duration); err != nil {
+		if err := rows.Scan(&id, &title, &video, &screenshot, &duration); err != nil {
 			return err
 		}
-		if !handler(domain.MakeVideo(id, title, duration)) {
+		if !handler(domain.MakeVideo(id, title, video, screenshot, duration)) {
 			return nil
 		}
 	}
@@ -47,12 +47,13 @@ func (r *videoRepository) Enumerate(handler func(v domain.Video) bool) error {
 }
 
 func (r *videoRepository) Find(id string) (*domain.Video, error) {
-	var title string
+	var title, video, screenshot string
 	var duration int
-	if err := r.db.QueryRow("SELECT title, duration FROM video WHERE video_key=?", id).Scan(&title, &duration); err != nil {
+	if err := r.db.QueryRow("SELECT title, url, thumbnail_url, duration FROM video WHERE video_key=?", id).
+		Scan(&title, &video, &screenshot, &duration); err != nil {
 		return nil, err
 	}
-	v := domain.MakeVideo(id, title, duration)
+	v := domain.MakeVideo(id, title, video, screenshot, duration)
 	return &v, nil
 }
 

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"github.com/alexey-malov/gocourse/simplevideoservice/handlers"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
+	"github.com/alexey-malov/gocourse/simplevideoservice/storage"
+	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 	"os"
@@ -13,6 +15,8 @@ import (
 )
 
 import log "github.com/sirupsen/logrus"
+
+const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot`
 
 func setupLogger() (*os.File, error) {
 	log.SetFormatter(&log.JSONFormatter{})
@@ -51,17 +55,19 @@ func main() {
 	}
 
 	vr := repository.MakeVideoRepository(db)
+	stg := storage.MakeStorage(dirPath, "content")
+	uploader := usecases.MakeUploader(vr, stg)
 
 	killSignalChan := getKillSignalChan()
-	srv := startServer(":8000", vr)
+	srv := startServer(":8000", vr, uploader)
 
 	waitForKillSignal(killSignalChan)
 	if err := srv.Shutdown(context.Background()); err != nil {
 	}
 }
 
-func startServer(serverUrl string, vr repository.Videos) *http.Server {
-	router := handlers.Router(vr)
+func startServer(serverUrl string, vr repository.Videos, uploader usecases.Uploader) *http.Server {
+	router := handlers.MakeRouter(uploader, vr)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 
 	go func() {

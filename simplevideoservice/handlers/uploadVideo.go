@@ -1,16 +1,11 @@
 package handlers
 
 import (
-	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
-	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
-	"github.com/alexey-malov/gocourse/simplevideoservice/storage"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot\content`
-
-func uploadVideo(vr repository.Videos, _ http.ResponseWriter, r *http.Request) {
+func (router *MyRouter) uploadVideo(_ http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	// Обрабатываем ошибки
 
@@ -21,16 +16,7 @@ func uploadVideo(vr repository.Videos, _ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileName := header.Filename
-
-	files := storage.MakeFiles(dirPath)
-	_, id, err := files.Add(fileReader)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	if err = vr.Add(domain.MakeVideo(id, fileName, 42)); err != nil {
+	if err = router.uploader.Upload(header.Filename, fileReader); err != nil {
 		log.Error(err)
 		return
 	}
