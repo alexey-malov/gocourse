@@ -5,14 +5,13 @@ import (
 	"net/http"
 )
 
-func (router *MyRouter) uploadVideo(_ http.ResponseWriter, r *http.Request) {
+func (router *MyRouter) upload(w http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
-	// Обрабатываем ошибки
+	defer fileReader.Close()
 
 	contentType := header.Header.Get("Content-Type")
-	// Убеждаемся, что пришел файл допустимого формата
 	if contentType != "video/mp4" {
-		// TODO
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
