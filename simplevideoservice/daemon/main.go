@@ -1,28 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"github.com/alexey-malov/gocourse/simplevideoservice/app"
+	"github.com/alexey-malov/gocourse/simplevideoservice/daemon/processor"
 	"github.com/alexey-malov/gocourse/simplevideoservice/daemon/task"
+	"github.com/sirupsen/logrus"
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
-func taskGenerator() task.Task {
-	return func() {
-		d := rand.Intn(3)
-		fmt.Printf("Task: Sleeping %d seconds\n", d)
-		time.Sleep(time.Duration(d) * time.Second)
-	}
-}
-
 func main() {
+	if logFile, err := app.SetupLogger("daemon.log"); err != nil {
+		log.Fatal("Failed to create log")
+	} else {
+		defer func() {
+			_ = logFile.Close()
+		}()
+	}
+
+	persister, err := app.MakeVideoPersister()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := persister.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	stg := app.MakeStorage()
+
 	stopChan := make(chan struct{})
 
-	wg := task.RunWorkerPool(stopChan, task.MakeDefaultTaskProvider(taskGenerator))
+	videoProcssor := processor.MakeVideoProcessor(persister.Videos(), stg)
+
+	wg := task.RunWorkerPool(stopChan, task.MakeDefaultTaskProvider(videoProcssor))
 	defer wg.Wait()
 
 	waitForKillSignal(getKillSignalChan())

@@ -5,6 +5,7 @@ import (
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 
 	"net/http"
 )
@@ -20,7 +21,7 @@ func makeVideoContent(v domain.Video) videoContent {
 			v.Id(),
 			v.Name(),
 			v.Duration(),
-			v.ScreenShotUrl(),
+			v.ThumbnailURL(),
 		},
 		v.VideoUrl(),
 	}
@@ -42,12 +43,14 @@ func video(vr repository.Videos, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(makeVideoContent(*v))
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(b); err != nil {
+		logrus.Error(err)
 		return
 	}
 }

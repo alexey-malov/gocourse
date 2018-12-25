@@ -28,7 +28,7 @@ func MakeRouter(uploader usecases.Uploader, videos repository.Videos) *MyRouter 
 	s.HandleFunc("/video/{ID}", makeHandlerFunc(videos, video)).Methods(http.MethodGet)
 
 	myRouter := &MyRouter{r, uploader, videos}
-	s.HandleFunc("/video", myRouter.uploadVideo).Methods(http.MethodPost)
+	s.HandleFunc("/video", myRouter.upload).Methods(http.MethodPost)
 	return myRouter
 }
 
