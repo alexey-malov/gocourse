@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"bytes"
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
 	"io"
 )
 
 type mockUploader struct {
 	fileName string
-	content  io.Reader
+	content  string
 	err      error
 }
 
@@ -19,7 +20,11 @@ type mockVideos struct {
 
 func (u *mockUploader) Upload(name string, content io.Reader) error {
 	u.fileName = name
-	u.content = content
+	buf := &bytes.Buffer{}
+	if _, err := buf.ReadFrom(content); err != nil {
+		return err
+	}
+	u.content = buf.String()
 	return u.err
 }
 

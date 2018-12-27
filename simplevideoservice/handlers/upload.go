@@ -7,6 +7,10 @@ import (
 
 func (h *handlerBase) upload(w http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	defer func() {
 		if err := fileReader.Close(); err != nil {
 			log.Error(err)
