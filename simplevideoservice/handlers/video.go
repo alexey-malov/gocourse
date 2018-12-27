@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
-	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
@@ -27,11 +26,11 @@ func makeVideoContent(v domain.Video) videoContent {
 	}
 }
 
-func video(vr repository.Videos, w http.ResponseWriter, r *http.Request) {
+func (h *handlerBase) video(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["ID"]
 
-	v, err := vr.Find(id)
+	v, err := h.videos.Find(id)
 	if err != nil {
 		return
 	}

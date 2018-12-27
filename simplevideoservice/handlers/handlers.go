@@ -9,36 +9,37 @@ import (
 
 import log "github.com/sirupsen/logrus"
 
-type MyRouter struct {
-	router   *mux.Router
+type handlerBase struct {
 	uploader usecases.Uploader
 	videos   repository.Videos
 }
 
-func makeHandlerFunc(vr repository.Videos, handler func(vr repository.Videos, w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler(vr, w, r)
-	}
+type handler struct {
+	router *mux.Router
+	handlerBase
 }
 
-func MakeRouter(uploader usecases.Uploader, videos repository.Videos) *MyRouter {
+func MakeHandler(uploader usecases.Uploader, videos repository.Videos) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/list", makeHandlerFunc(videos, list)).Methods(http.MethodGet)
-	s.HandleFunc("/video/{ID}", makeHandlerFunc(videos, video)).Methods(http.MethodGet)
+	h := &handler{r,
+		handlerBase{
+			uploader,
+			videos}}
 
-	myRouter := &MyRouter{r, uploader, videos}
-	s.HandleFunc("/video", myRouter.upload).Methods(http.MethodPost)
-	return myRouter
+	s.HandleFunc("/list", h.list).Methods(http.MethodGet)
+	s.HandleFunc("/video/{ID}", h.video).Methods(http.MethodGet)
+	s.HandleFunc("/video", h.upload).Methods(http.MethodPost)
+	return h
 }
 
-func (mr *MyRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.WithFields(log.Fields{
 		"method":     r.Method,
 		"url":        r.URL,
 		"remoteAddr": r.RemoteAddr,
 		"userAgent":  r.UserAgent(),
 	}).Info("got a new request")
-	mr.router.ServeHTTP(w, r)
+	h.router.ServeHTTP(w, r)
 
 }

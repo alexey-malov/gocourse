@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
-	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -24,10 +23,10 @@ func makeVideoListItem(v domain.Video) videoListItem {
 	}
 }
 
-func list(vr repository.Videos, w http.ResponseWriter, _ *http.Request) {
+func (h *handlerBase) list(w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	err := vr.Enumerate(func(v *domain.Video) bool {
+	err := h.videos.Enumerate(func(v *domain.Video) bool {
 		videos = append(videos, makeVideoListItem(*v))
 		return true
 	})

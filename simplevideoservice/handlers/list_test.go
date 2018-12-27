@@ -11,12 +11,15 @@ import (
 
 func TestList(t *testing.T) {
 	w := httptest.NewRecorder()
-	vr := &mockRepo{}
-	vr.videos = []domain.Video{
-		domain.MakeVideo("video-id1", "video1-name", 13),
-		domain.MakeVideo("video-id2", "video1 name 2", 42),
+	vr := mockVideos{}
+	vr.videos = []*domain.Video{
+		domain.MakeVideo("video-id1", "video1-name", "video1-url", "", 13, domain.StatusUploaded),
+		domain.MakeVideo("video-id2", "video1 name 2", "video2-path", "video2-thumb", 42, domain.StatusReady),
 	}
-	list(vr, w, nil)
+
+	h := handlerBase{nil, &vr}
+	h.list(w, nil)
+
 	response := w.Result()
 	if response.StatusCode != http.StatusOK {
 		t.Errorf("Status code is wrong. Have: %d, want: %d.", response.StatusCode, http.StatusOK)

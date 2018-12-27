@@ -35,7 +35,7 @@ func (u *uploader) Upload(name string, content io.Reader) error {
 
 	v := domain.MakeUploadedVideo(id, name, file.Path())
 
-	if err := u.videos.Add(*v); err != nil {
+	if err := u.videos.Add(v); err != nil {
 		return err
 	}
 

@@ -5,9 +5,13 @@ import (
 	"net/http"
 )
 
-func (router *MyRouter) upload(w http.ResponseWriter, r *http.Request) {
+func (h *handlerBase) upload(w http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
-	defer fileReader.Close()
+	defer func() {
+		if err := fileReader.Close(); err != nil {
+			log.Error(err)
+		}
+	}()
 
 	contentType := header.Header.Get("Content-Type")
 	if contentType != "video/mp4" {
@@ -15,7 +19,7 @@ func (router *MyRouter) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = router.uploader.Upload(header.Filename, fileReader); err != nil {
+	if err = h.uploader.Upload(header.Filename, fileReader); err != nil {
 		log.Error(err)
 		return
 	}

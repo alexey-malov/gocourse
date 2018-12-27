@@ -34,9 +34,9 @@ func main() {
 
 	stopChan := make(chan struct{})
 
-	videoProcssor := processor.MakeVideoProcessor(persister.Videos(), stg)
+	videoProcessor := processor.MakeVideoProcessor(persister.Videos(), stg)
 
-	wg := task.RunWorkerPool(stopChan, task.MakeDefaultTaskProvider(videoProcssor))
+	wg := task.RunWorkerPool(stopChan, task.MakeDefaultTaskProvider(videoProcessor))
 	defer wg.Wait()
 
 	waitForKillSignal(getKillSignalChan())

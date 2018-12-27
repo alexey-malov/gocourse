@@ -14,8 +14,8 @@ type Videos interface {
 	Enumerate(handler func(v *domain.Video) bool) error
 	Find(id string) (*domain.Video, error)
 	EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) bool) error
-	SaveVideo(v domain.Video) error
-	Add(v domain.Video) error
+	SaveVideo(v *domain.Video) error
+	Add(v *domain.Video) error
 }
 
 func MakeVideoRepository(db *sql.DB) Videos {
@@ -28,7 +28,7 @@ func safeCloseRows(rr *sql.Rows) {
 	}
 }
 
-func (r *videoRepository) SaveVideo(v domain.Video) error {
+func (r *videoRepository) SaveVideo(v *domain.Video) error {
 	_, err := r.db.Exec(`UPDATE video 
 SET
     title=?,
@@ -94,7 +94,7 @@ func (r *videoRepository) Find(id string) (*domain.Video, error) {
 	return v, nil
 }
 
-func (r *videoRepository) Add(v domain.Video) error {
+func (r *videoRepository) Add(v *domain.Video) error {
 	_, err := r.db.Exec(`INSERT INTO video
 SET
     video_key = ?,

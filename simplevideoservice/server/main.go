@@ -41,7 +41,7 @@ func main() {
 }
 
 func startServer(serverUrl string, vr repository.Videos, uploader usecases.Uploader) *http.Server {
-	router := handlers.MakeRouter(uploader, vr)
+	router := handlers.MakeHandler(uploader, vr)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 
 	go func() {
