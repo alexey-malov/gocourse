@@ -30,16 +30,15 @@ func TestUploadWrongFormName(t *testing.T) {
 	runUploadTest(t, uploadRequest{fileName: "video.mp4", formName: "thefile[]", contentType: "video/mp4"}, http.StatusBadRequest)
 }
 func runUploadTest(t *testing.T, ur uploadRequest, expectedStatus int) {
-	u := mockUploader{}
-	h := UseCases{uploader: &u}
-
 	fileContent := "fileContent"
 	r, err := makeUploadRequest(ur.fileName, fileContent, ur.contentType, ur.formName)
 	if err != nil {
 		t.Error(err)
 	}
 	w := httptest.NewRecorder()
-	h.upload(w, r)
+
+	u := &mockUploader{}
+	upload(u, w, r)
 
 	if w.Code != expectedStatus {
 		t.Errorf("Invalid HTTP status. Want %d, got %d", expectedStatus, w.Code)

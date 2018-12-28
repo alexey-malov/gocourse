@@ -32,7 +32,11 @@ func MakeHandler(useCases UseCases) http.Handler {
 
 	s.HandleFunc("/list", h.useCases.list).Methods(http.MethodGet)
 	s.HandleFunc("/video/{ID}", h.useCases.video).Methods(http.MethodGet)
-	s.HandleFunc("/video", h.useCases.upload).Methods(http.MethodPost)
+
+	s.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
+		upload(useCases.uploader, w, r)
+	}).Methods(http.MethodPost)
+
 	return h
 }
 

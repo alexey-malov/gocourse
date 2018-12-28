@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
 
-func (uc *UseCases) upload(w http.ResponseWriter, r *http.Request) {
+func upload(uploader usecases.Uploader, w http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -20,7 +21,7 @@ func (uc *UseCases) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = uc.uploader.Upload(header.Filename, fileReader); err != nil {
+	if err = uploader.Upload(header.Filename, fileReader); err != nil {
 		log.Error(err)
 		return
 	}
