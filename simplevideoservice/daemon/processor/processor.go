@@ -18,7 +18,7 @@ func processVideo(videos repository.Videos, stg storage.Storage, video domain.Vi
 
 	folder, err := stg.GetFolder(video.Id())
 	defer func() {
-		err := videos.SaveVideo(video)
+		err := videos.SaveVideo(&video)
 		if err != nil {
 			logrus.Error(err)
 		}
@@ -61,9 +61,9 @@ func processVideo(videos repository.Videos, stg storage.Storage, video domain.Vi
 func MakeVideoProcessor(videos repository.Videos, stg storage.Storage) task.TaskGenerator {
 	return func() task.Task {
 		var videoToProcess *domain.Video
-		if err := videos.EnumerateWithStatus(domain.StatusUploaded, func(v *domain.Video) bool {
+		if err := videos.EnumerateWithStatus(domain.StatusUploaded, func(v *domain.Video) (bool, error) {
 			videoToProcess = v
-			return false
+			return false, nil
 		}); err != nil {
 			logrus.Error(err)
 			return nil
@@ -74,7 +74,7 @@ func MakeVideoProcessor(videos repository.Videos, stg storage.Storage) task.Task
 		}
 
 		videoToProcess.SetStatus(domain.StatusProcessing)
-		if err := videos.SaveVideo(*videoToProcess); err != nil {
+		if err := videos.SaveVideo(videoToProcess); err != nil {
 			logrus.Error("err")
 			return nil
 		}

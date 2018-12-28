@@ -11,9 +11,9 @@ type videoRepository struct {
 }
 
 type Videos interface {
-	Enumerate(handler func(v *domain.Video) bool) error
+	Enumerate(handler func(v *domain.Video) (bool, error)) error
 	Find(id string) (*domain.Video, error)
-	EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) bool) error
+	EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) (bool, error)) error
 	SaveVideo(v *domain.Video) error
 	Add(v *domain.Video) error
 }
@@ -43,7 +43,7 @@ SET
 	return nil
 }
 
-func (r *videoRepository) EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) bool) error {
+func (r *videoRepository) EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) (bool, error)) error {
 	rows, err := r.db.Query("SELECT video_key, title, url, thumbnail_url, duration, status FROM video WHERE status=?", int(status))
 	if err != nil {
 		return err
@@ -51,19 +51,21 @@ func (r *videoRepository) EnumerateWithStatus(status domain.Status, handler func
 	defer safeCloseRows(rows)
 
 	for rows.Next() {
-		var id, title, video, screenshot string
+		var id, title, video, thumbnail string
 		var duration, status int
-		if err := rows.Scan(&id, &title, &video, &screenshot, &duration, &status); err != nil {
+		if err := rows.Scan(&id, &title, &video, &thumbnail, &duration, &status); err != nil {
 			return err
 		}
-		if !handler(domain.MakeVideo(id, title, video, screenshot, duration, domain.Status(status))) {
+		if ok, err := handler(domain.MakeVideo(id, title, video, thumbnail, duration, domain.Status(status))); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 	}
 	return nil
 }
 
-func (r *videoRepository) Enumerate(handler func(v *domain.Video) bool) error {
+func (r *videoRepository) Enumerate(handler func(v *domain.Video) (bool, error)) error {
 	rows, err := r.db.Query("SELECT video_key, title, url, thumbnail_url, duration, status FROM video")
 	if err != nil {
 		return err
@@ -71,12 +73,16 @@ func (r *videoRepository) Enumerate(handler func(v *domain.Video) bool) error {
 	defer safeCloseRows(rows)
 
 	for rows.Next() {
-		var id, title, video, screenshot string
+		var id, title, videoURL, thumbnailURL string
 		var duration, status int
-		if err := rows.Scan(&id, &title, &video, &screenshot, &duration, &status); err != nil {
+		if err := rows.Scan(&id, &title, &videoURL, &thumbnailURL, &duration, &status); err != nil {
 			return err
 		}
-		if !handler(domain.MakeVideo(id, title, video, screenshot, duration, domain.Status(status))) {
+
+		v := domain.MakeVideo(id, title, videoURL, thumbnailURL, duration, domain.Status(status))
+		if ok, err := handler(v); err != nil {
+			return err
+		} else if !ok {
 			return nil
 		}
 	}

@@ -9,16 +9,30 @@ import (
 	"testing"
 )
 
+type mockLister struct {
+	videos []*domain.Video
+}
+
+func (l *mockLister) List(handler func(v *domain.Video) (bool, error)) error {
+	for _, v := range l.videos {
+		if ok, err := handler(v); err != nil {
+			return err
+		} else if !ok {
+			return nil
+		}
+	}
+	return nil
+}
+
 func TestList(t *testing.T) {
 	w := httptest.NewRecorder()
-	vr := mockVideos{}
-	vr.videos = []*domain.Video{
+	lister := mockLister{}
+	lister.videos = []*domain.Video{
 		domain.MakeVideo("video-id1", "video1-name", "video1-url", "", 13, domain.StatusUploaded),
 		domain.MakeVideo("video-id2", "video1 name 2", "video2-path", "video2-thumb", 42, domain.StatusReady),
 	}
 
-	uc := UseCases{videos: &vr}
-	uc.list(w, nil)
+	list(&lister, w, nil)
 
 	response := w.Result()
 	if response.StatusCode != http.StatusOK {

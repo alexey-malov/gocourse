@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
+	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
@@ -26,7 +27,7 @@ func makeVideoContent(v domain.Video) videoContent {
 	}
 }
 
-func (uc *UseCases) video(w http.ResponseWriter, r *http.Request) {
+func video(finder usecases.VideoFinder, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["ID"]
 	if !ok {
@@ -34,7 +35,7 @@ func (uc *UseCases) video(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	v, err := uc.finder.Find(id)
+	v, err := finder.Find(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Error(err)

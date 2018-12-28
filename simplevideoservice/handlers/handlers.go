@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -11,12 +10,12 @@ import log "github.com/sirupsen/logrus"
 
 type UseCases struct {
 	uploader usecases.Uploader
-	videos   repository.Videos
 	finder   usecases.VideoFinder
+	lister   usecases.VideoLister
 }
 
-func MakeUseCases(finder usecases.VideoFinder, uploader usecases.Uploader, videos repository.Videos) UseCases {
-	return UseCases{uploader, videos, finder}
+func MakeUseCases(finder usecases.VideoFinder, uploader usecases.Uploader, lister usecases.VideoLister) UseCases {
+	return UseCases{uploader, finder, lister}
 }
 
 type handler struct {
@@ -24,17 +23,22 @@ type handler struct {
 	useCases UseCases
 }
 
-func MakeHandler(useCases UseCases) http.Handler {
+func MakeHandler(uc UseCases) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
 	h := &handler{r,
-		useCases}
+		uc}
 
-	s.HandleFunc("/list", h.useCases.list).Methods(http.MethodGet)
-	s.HandleFunc("/video/{ID}", h.useCases.video).Methods(http.MethodGet)
+	s.HandleFunc("/list", func(w http.ResponseWriter, r *http.Request) {
+		list(uc.lister, w, r)
+	}).Methods(http.MethodGet)
+
+	s.HandleFunc("/video/{ID}", func(w http.ResponseWriter, r *http.Request) {
+		video(uc.finder, w, r)
+	}).Methods(http.MethodGet)
 
 	s.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
-		upload(useCases.uploader, w, r)
+		upload(uc.uploader, w, r)
 	}).Methods(http.MethodPost)
 
 	return h

@@ -29,10 +29,13 @@ func main() {
 	}()
 
 	stg := app.MakeStorage()
+
+	finder := usecases.MakeFinder(persister.Videos())
 	uploader := usecases.MakeUploader(persister.Videos(), stg)
+	lister := usecases.MakeVideoLister(persister.Videos())
 
 	killSignalChan := getKillSignalChan()
-	uc := handlers.MakeUseCases(usecases.MakeFinder(persister.Videos()), uploader, persister.Videos())
+	uc := handlers.MakeUseCases(finder, uploader, lister)
 	srv := startServer(":8000", uc)
 
 	waitForKillSignal(killSignalChan)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/alexey-malov/gocourse/simplevideoservice/domain"
+	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -23,12 +24,12 @@ func makeVideoListItem(v domain.Video) videoListItem {
 	}
 }
 
-func (uc *UseCases) list(w http.ResponseWriter, _ *http.Request) {
+func list(lister usecases.VideoLister, w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	err := uc.videos.Enumerate(func(v *domain.Video) bool {
+	err := lister.List(func(v *domain.Video) (bool, error) {
 		videos = append(videos, makeVideoListItem(*v))
-		return true
+		return true, nil
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

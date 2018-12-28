@@ -53,14 +53,13 @@ func TestVideoInfoSearchingError(t *testing.T) {
 
 func testVideoImpl(t *testing.T, id string, finder mockFinder, response videoResponse) {
 	w := httptest.NewRecorder()
-	h := &UseCases{finder: &finder}
 	r := httptest.NewRequest("GET", fmt.Sprintf("/video/%s", id), nil)
 	if id != "" {
 		vars := map[string]string{"ID": id}
 		r = mux.SetURLVars(r, vars)
 	}
 
-	h.video(w, r)
+	video(&finder, w, r)
 
 	res := w.Result()
 	if res.StatusCode != response.status {
