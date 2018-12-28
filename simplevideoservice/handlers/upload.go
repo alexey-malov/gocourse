@@ -2,20 +2,17 @@ package handlers
 
 import (
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 )
 
-func (h *handlerBase) upload(w http.ResponseWriter, r *http.Request) {
+func (uc *UseCases) upload(w http.ResponseWriter, r *http.Request) {
 	fileReader, header, err := r.FormFile("file[]")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	defer func() {
-		if err := fileReader.Close(); err != nil {
-			log.Error(err)
-		}
-	}()
+	defer closeFile(fileReader)
 
 	contentType := header.Header.Get("Content-Type")
 	if contentType != "video/mp4" {
@@ -23,8 +20,16 @@ func (h *handlerBase) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.uploader.Upload(header.Filename, fileReader); err != nil {
+	if err = uc.uploader.Upload(header.Filename, fileReader); err != nil {
 		log.Error(err)
 		return
 	}
+}
+
+func closeFile(closer io.Closer) {
+	func() {
+		if err := closer.Close(); err != nil {
+			log.Error(err)
+		}
+	}()
 }

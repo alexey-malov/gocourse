@@ -17,8 +17,8 @@ func TestList(t *testing.T) {
 		domain.MakeVideo("video-id2", "video1 name 2", "video2-path", "video2-thumb", 42, domain.StatusReady),
 	}
 
-	h := handlerBase{nil, &vr}
-	h.list(w, nil)
+	uc := UseCases{videos: &vr}
+	uc.list(w, nil)
 
 	response := w.Result()
 	if response.StatusCode != http.StatusOK {

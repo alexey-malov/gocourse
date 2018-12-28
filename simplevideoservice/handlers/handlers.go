@@ -9,27 +9,30 @@ import (
 
 import log "github.com/sirupsen/logrus"
 
-type handlerBase struct {
+type UseCases struct {
 	uploader usecases.Uploader
 	videos   repository.Videos
+	finder   usecases.VideoFinder
+}
+
+func MakeUseCases(finder usecases.VideoFinder, uploader usecases.Uploader, videos repository.Videos) UseCases {
+	return UseCases{uploader, videos, finder}
 }
 
 type handler struct {
-	router *mux.Router
-	handlerBase
+	router   *mux.Router
+	useCases UseCases
 }
 
-func MakeHandler(uploader usecases.Uploader, videos repository.Videos) http.Handler {
+func MakeHandler(useCases UseCases) http.Handler {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
 	h := &handler{r,
-		handlerBase{
-			uploader,
-			videos}}
+		useCases}
 
-	s.HandleFunc("/list", h.list).Methods(http.MethodGet)
-	s.HandleFunc("/video/{ID}", h.video).Methods(http.MethodGet)
-	s.HandleFunc("/video", h.upload).Methods(http.MethodPost)
+	s.HandleFunc("/list", h.useCases.list).Methods(http.MethodGet)
+	s.HandleFunc("/video/{ID}", h.useCases.video).Methods(http.MethodGet)
+	s.HandleFunc("/video", h.useCases.upload).Methods(http.MethodPost)
 	return h
 }
 

@@ -31,7 +31,7 @@ func TestUploadWrongFormName(t *testing.T) {
 }
 func runUploadTest(t *testing.T, ur uploadRequest, expectedStatus int) {
 	u := mockUploader{}
-	h := handlerBase{&u, nil}
+	h := UseCases{uploader: &u}
 
 	fileContent := "fileContent"
 	r, err := makeUploadRequest(ur.fileName, fileContent, ur.contentType, ur.formName)

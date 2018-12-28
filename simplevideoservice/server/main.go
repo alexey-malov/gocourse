@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/alexey-malov/gocourse/simplevideoservice/app"
 	"github.com/alexey-malov/gocourse/simplevideoservice/handlers"
-	"github.com/alexey-malov/gocourse/simplevideoservice/repository"
 	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	"net/http"
 	"os"
@@ -33,15 +32,17 @@ func main() {
 	uploader := usecases.MakeUploader(persister.Videos(), stg)
 
 	killSignalChan := getKillSignalChan()
-	srv := startServer(":8000", persister.Videos(), uploader)
+	uc := handlers.MakeUseCases(usecases.MakeFinder(persister.Videos()), uploader, persister.Videos())
+	srv := startServer(":8000", uc)
 
 	waitForKillSignal(killSignalChan)
 	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Error(err)
 	}
 }
 
-func startServer(serverUrl string, vr repository.Videos, uploader usecases.Uploader) *http.Server {
-	router := handlers.MakeHandler(uploader, vr)
+func startServer(serverUrl string, useCases handlers.UseCases) *http.Server {
+	router := handlers.MakeHandler(useCases)
 	srv := &http.Server{Addr: serverUrl, Handler: router}
 
 	go func() {

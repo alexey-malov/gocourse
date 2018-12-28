@@ -26,12 +26,18 @@ func makeVideoContent(v domain.Video) videoContent {
 	}
 }
 
-func (h *handlerBase) video(w http.ResponseWriter, r *http.Request) {
+func (uc *UseCases) video(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["ID"]
+	id, ok := vars["ID"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	v, err := h.videos.Find(id)
+	v, err := uc.finder.Find(id)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logrus.Error(err)
 		return
 	}
 

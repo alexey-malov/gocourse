@@ -23,10 +23,10 @@ func makeVideoListItem(v domain.Video) videoListItem {
 	}
 }
 
-func (h *handlerBase) list(w http.ResponseWriter, _ *http.Request) {
+func (uc *UseCases) list(w http.ResponseWriter, _ *http.Request) {
 	var videos []videoListItem
 
-	err := h.videos.Enumerate(func(v *domain.Video) bool {
+	err := uc.videos.Enumerate(func(v *domain.Video) bool {
 		videos = append(videos, makeVideoListItem(*v))
 		return true
 	})
