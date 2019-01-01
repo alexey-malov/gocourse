@@ -28,7 +28,10 @@ func main() {
 		}
 	}()
 
-	stg := app.MakeStorage()
+	stg, err := app.MakeStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	finder := usecases.MakeFinder(persister.Videos())
 	uploader := usecases.MakeUploader(persister.Videos(), stg)

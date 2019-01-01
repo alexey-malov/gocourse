@@ -1,9 +1,17 @@
 package app
 
-import "github.com/alexey-malov/gocourse/simplevideoservice/storage"
+import (
+	"fmt"
+	"github.com/alexey-malov/gocourse/simplevideoservice/storage"
+	"os"
+)
 
-const dirPath string = `C:\teaching\go\src\github.com\alexey-malov\gocourse\wwwroot`
+func MakeStorage() (storage.Storage, error) {
+	const storageRootEnvVar = "SIMPLE_VIDEO_SERVICE_STORAGE"
+	storagePath := os.Getenv(storageRootEnvVar)
+	if storagePath == "" {
+		return nil, fmt.Errorf("No %s environment variable", storageRootEnvVar)
+	}
 
-func MakeStorage() storage.Storage {
-	return storage.MakeStorage(dirPath, "content")
+	return storage.MakeStorage(storagePath, "content"), nil
 }

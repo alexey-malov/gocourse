@@ -29,7 +29,6 @@ func (r *repo) Videos() repository.Videos {
 }
 
 func MakeVideoPersister() (VideoPersister, error) {
-
 	const dbUrlEnvVar = "SIMPLE_VIDEO_SERVICE_DB"
 	dbUrl := os.Getenv(dbUrlEnvVar)
 	if dbUrl == "" {

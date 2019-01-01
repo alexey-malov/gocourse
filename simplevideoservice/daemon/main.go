@@ -22,7 +22,7 @@ func main() {
 
 	persister, err := app.MakeVideoPersister()
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer func() {
 		if err := persister.Close(); err != nil {
@@ -30,7 +30,10 @@ func main() {
 		}
 	}()
 
-	stg := app.MakeStorage()
+	stg, err := app.MakeStorage()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	stopChan := make(chan struct{})
 
