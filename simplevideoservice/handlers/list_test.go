@@ -10,10 +10,13 @@ import (
 )
 
 type mockLister struct {
-	videos []*domain.Video
+	videos        []*domain.Video
+	limit, offset uint32
 }
 
-func (l *mockLister) List(handler func(v *domain.Video) (bool, error)) error {
+func (l *mockLister) List(offset, limit uint32, handler func(v *domain.Video) (bool, error)) error {
+	l.offset = offset
+	l.limit = limit
 	for _, v := range l.videos {
 		if ok, err := handler(v); err != nil {
 			return err
@@ -32,7 +35,15 @@ func TestList(t *testing.T) {
 		domain.MakeVideo("video-id2", "video1 name 2", "video2-path", "video2-thumb", 42, domain.StatusReady),
 	}
 
-	list(&lister, w, nil)
+	r := httptest.NewRequest("GET", "/api/v1/list?limit=3&skip=1", nil)
+	list(&lister, w, r)
+
+	if lister.limit != 3 {
+		t.Errorf("Invalid limit. Have: %d, want: %d", lister.limit, 3)
+	}
+	if lister.offset != 1 {
+		t.Errorf("Invalid offset. Have: %d, want: %d", lister.offset, 1)
+	}
 
 	response := w.Result()
 	if response.StatusCode != http.StatusOK {

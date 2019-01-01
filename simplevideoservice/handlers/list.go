@@ -6,6 +6,7 @@ import (
 	"github.com/alexey-malov/gocourse/simplevideoservice/usecases"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 type videoListItem struct {
@@ -24,10 +25,21 @@ func makeVideoListItem(v domain.Video) videoListItem {
 	}
 }
 
-func list(lister usecases.VideoLister, w http.ResponseWriter, _ *http.Request) {
-	var videos []videoListItem
+func list(lister usecases.VideoLister, w http.ResponseWriter, r *http.Request) {
+	offset, err := strconv.Atoi(r.URL.Query().Get("skip"))
+	if err != nil || offset < 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	err := lister.List(func(v *domain.Video) (bool, error) {
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit < 0 || limit > 50 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	videos := make([]videoListItem, 0)
+	err = lister.List(uint32(offset), uint32(limit), func(v *domain.Video) (bool, error) {
 		videos = append(videos, makeVideoListItem(*v))
 		return true, nil
 	})

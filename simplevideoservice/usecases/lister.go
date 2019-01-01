@@ -6,7 +6,7 @@ import (
 )
 
 type VideoLister interface {
-	List(handler func(v *domain.Video) (bool, error)) error
+	List(skip, limit uint32, handler func(v *domain.Video) (bool, error)) error
 }
 
 type videoLister struct {
@@ -17,6 +17,6 @@ func MakeVideoLister(videos repository.Videos) VideoLister {
 	return &videoLister{videos}
 }
 
-func (l *videoLister) List(handler func(v *domain.Video) (bool, error)) error {
-	return l.videos.Enumerate(handler)
+func (l *videoLister) List(skip, limit uint32, handler func(v *domain.Video) (bool, error)) error {
+	return l.videos.Enumerate(skip, limit, handler)
 }

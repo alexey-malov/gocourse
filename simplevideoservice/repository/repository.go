@@ -11,7 +11,7 @@ type videoRepository struct {
 }
 
 type Videos interface {
-	Enumerate(handler func(v *domain.Video) (bool, error)) error
+	Enumerate(offset, limit uint32, handler func(v *domain.Video) (bool, error)) error
 	Find(id string) (*domain.Video, error)
 	EnumerateWithStatus(status domain.Status, handler func(v *domain.Video) (bool, error)) error
 	SaveVideo(v *domain.Video) error
@@ -65,8 +65,8 @@ func (r *videoRepository) EnumerateWithStatus(status domain.Status, handler func
 	return nil
 }
 
-func (r *videoRepository) Enumerate(handler func(v *domain.Video) (bool, error)) error {
-	rows, err := r.db.Query("SELECT video_key, title, url, thumbnail_url, duration, status FROM video")
+func (r *videoRepository) Enumerate(offset, limit uint32, handler func(v *domain.Video) (bool, error)) error {
+	rows, err := r.db.Query("SELECT video_key, title, url, thumbnail_url, duration, status FROM video LIMIT ?, ?", offset, limit)
 	if err != nil {
 		return err
 	}
